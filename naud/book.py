@@ -1,8 +1,12 @@
-"""The words. Each table maps a phrase, written in base form, to what to say instead:
-a word says that (verbs bend to fit: uses, used), "" says nothing, None only points at it,
-and the phrase itself keeps it, so "real estate" survives the ban on "real"."""
+"""The words. Each table maps a phrase, written in base form, to what happens to it.
+A word is said instead (verbs bend to fit, so `uses` and `used`), CUT drops it, LOOK only points
+at it, and KEEP leaves it alone, so `real estate` survives the ban on `real`."""
+from typing import Literal
 
-Words = dict[str, str | None]
+from .edit import Kind
+
+Entry = str | Literal[Kind.CUT, Kind.LOOK, Kind.KEEP]
+Words = dict[str, Entry]
 
 # How much is too much, from ASD-STE100 (Simplified Technical English), Issue 9.
 WORDS: int = 20  # per sentence. Rule 5.1 says 20 for instructions, rule 6.3 says 25 for description.
@@ -10,20 +14,20 @@ SENTENCES: int = 6  # per paragraph, rule 6.6.
 
 
 def gone(*phrases: str) -> Words:
-    return {p: "" for p in phrases}
+    return {p: Kind.CUT for p in phrases}
 
 
 def look(*phrases: str) -> Words:
-    return {p: None for p in phrases}
+    return {p: Kind.LOOK for p in phrases}
 
 
-def same(*phrases: str) -> Words:
-    return {p: p for p in phrases}
+def keep(*phrases: str) -> Words:
+    return {p: Kind.KEEP for p in phrases}
 
 
 def opener(*phrases: str) -> Words:
-    """"The point is that X" / "The point is, X" / "The point is: X" → "X"."""
-    return {f"{p}{f}": "" for p in phrases for f in (" that", ",", ":")}
+    """`The point is that X`, `The point is, X`, `The point is: X` → `X`."""
+    return {f"{p}{f}": Kind.CUT for p in phrases for f in (" that", ",", ":")}
 
 
 # Emphasis. AI emphasises everything, so all of it goes. "very important" stays as the one way to mark weight.
@@ -37,7 +41,7 @@ EMPHASIS: Words = gone(
 ) | {
     "the whole": "the", "the entire": "the", "be exactly": "be", "the exact same": "the same", "not really": "not quite",
     **{f"the right {n}": f"the {n}" for n in "way question answer tool time call move thing approach choice decision".split()},
-} | same(
+} | keep(
     "real estate", "real time", "real-time", "real number", "real numbers", "in real life",
     "very important", "extremely important", "honest with",
 )

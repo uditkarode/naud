@@ -5,7 +5,7 @@ Reads stdin when there is no FILE."""
 import difflib
 import sys
 
-from . import clean, lint
+from . import Kind, clean, lint
 
 
 def main() -> None:
@@ -17,7 +17,7 @@ def main() -> None:
         print("\n".join(difflib.unified_diff(text.splitlines(), clean(text).splitlines(), "before", "after", lineterm="", n=0)))
     else:
         for e in lint(text):
-            print(f"{e.start:>7}  {e.rule:<9} {text[e.start:e.end]!r}", f"→ {e.text!r}" if e.text is not None else "(look at this)")
+            print(f"{e.start:>7}  {e.rule:<9} {text[e.start:e.end]!r}", "(look at this)" if e.kind is Kind.LOOK else f"→ {e.text!r}")
 
 
 if __name__ == "__main__":
