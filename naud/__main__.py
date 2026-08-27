@@ -1,15 +1,19 @@
-"""naud lint  [FILE]   what it would change, and where
-naud clean [FILE]   the cleaned text
-naud diff  [FILE]   before and after
+"""naud lint  [FILE]    what it would change, and where
+naud clean [FILE]    the cleaned text
+naud diff  [FILE]    before and after
+naud serve SOCKET    answer Claude Code's MessageDisplay hook at SOCKET, so replies show cleaned
 Reads stdin when there is no FILE."""
 import difflib
 import sys
 
-from . import Kind, clean, lint
+from . import Kind, clean, lint, serve
 
 
 def main() -> None:
     mode, *path = sys.argv[1:] or ["lint"]
+    if mode == "serve":
+        serve.main(path[0])
+        return
     text = open(path[0]).read() if path else sys.stdin.read()
     if mode == "clean":
         print(clean(text), end="")

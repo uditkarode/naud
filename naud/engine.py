@@ -2,7 +2,7 @@
 from spacy.tokens import Doc
 
 from .edit import Edit, Kind
-from .markdown import as_plain, lines
+from .markdown import as_plain, ends_fenced, lines
 from .mend import rearticle, recase, tidy
 from .parse import parse
 from .rules import RULES
@@ -41,12 +41,25 @@ def lint(text: str) -> list[Edit]:
     return [e.shift(at) for at, line in lines(text) for e in found(line)]
 
 
-def clean(text: str) -> str:
-    """A paragraph broken in two keeps its indent, so a bullet's second half stays in the bullet."""
+def clean(text: str, fenced: bool = False) -> str:
+    """The text with every edit made. `fenced` says the text opens inside a code fence.
+    A paragraph broken in two keeps its indent, so a bullet's second half stays in the bullet."""
     out: list[str] = []
     at = 0
-    for start, line in lines(text):
+    for start, line in lines(text, fenced):
         indent = " " * (start - text.rfind("\n", 0, start) - 1)
         out += text[at:start], tidy(apply(line, found(line))).replace("\n\n", "\n\n" + indent)
         at = start + len(line)
     return "".join(out) + text[at:]
+
+
+class Stream:
+    """Cleans text as it arrives, in batches of whole lines, remembering an open code fence between batches."""
+
+    def __init__(self) -> None:
+        self.fenced = False
+
+    def feed(self, text: str) -> str:
+        cleaned = clean(text, self.fenced)
+        self.fenced = ends_fenced(text, self.fenced)
+        return cleaned

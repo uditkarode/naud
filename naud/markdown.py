@@ -2,7 +2,7 @@
 import re
 from collections.abc import Iterator
 
-FENCE = re.compile(r"```.*?```", re.S)
+FENCE = re.compile(r"^[ \t]*(```|~~~)(?!.*\1)", re.M)
 INLINE = re.compile(r"(`[^`\n]*`)")
 PREFIX = re.compile(r"[ \t]*(?:(?:[-*+]|\d+[.)]|#{1,6}|>)[ \t]+)*")
 CURLY = str.maketrans("’“”", "'\"\"")
@@ -13,12 +13,20 @@ def blanked(m: re.Match[str]) -> str:
     return re.sub(r"\S", " ", m.group())
 
 
-def lines(text: str) -> Iterator[tuple[int, str]]:
+def lines(text: str, fenced: bool = False) -> Iterator[tuple[int, str]]:
     """(offset, line) for every line of prose: outside code fences, past any bullet or heading mark."""
-    for m in re.finditer(r".+", FENCE.sub(blanked, text)):
-        prose = PREFIX.sub("", m.group(), count=1)
-        if prose.strip():
-            yield m.end() - len(prose), prose
+    for m in re.finditer(r".+", text):
+        if FENCE.match(m.group()):
+            fenced = not fenced
+        elif not fenced:
+            prose = PREFIX.sub("", m.group(), count=1)
+            if prose.strip():
+                yield m.end() - len(prose), prose
+
+
+def ends_fenced(text: str, fenced: bool = False) -> bool:
+    """Whether the text ends inside a code fence, given whether it began in one."""
+    return fenced != (len(FENCE.findall(text)) % 2 == 1)
 
 
 def as_plain(line: str) -> str:
