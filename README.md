@@ -22,7 +22,7 @@ naud/
   book.py            the words: what goes, what is said instead, what is only looked at
   rules/             one module per family, one Rule(name, find) each, in order of who wins
     contrast.py      `not X but Y`, `A rather than B`, `No X. No Y. Just Z.`, `It's not X. It's Y.`
-    words.py         the book's tables, `lives in`, a bare `This`
+    words.py         the book's tables, `lives in`, `sits at`, a bare `This`
     joints.py        dashes, colons, semicolons between clauses
     length.py        sentences over the word limit, paragraphs over the sentence limit
     grammar.py       what the parse says, in words the rules can use
