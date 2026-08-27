@@ -2,30 +2,32 @@
 a word says that (verbs bend to fit: uses, used), "" says nothing, None only points at it,
 and the phrase itself keeps it, so "real estate" survives the ban on "real"."""
 
+Words = dict[str, str | None]
+
 # How much is too much, from ASD-STE100 (Simplified Technical English), Issue 9.
-WORDS = 20  # per sentence. Rule 5.1 says 20 for instructions, rule 6.3 says 25 for description.
-SENTENCES = 6  # per paragraph, rule 6.6.
+WORDS: int = 20  # per sentence. Rule 5.1 says 20 for instructions, rule 6.3 says 25 for description.
+SENTENCES: int = 6  # per paragraph, rule 6.6.
 
 
-def gone(*phrases):
-    return dict.fromkeys(phrases, "")
+def gone(*phrases: str) -> Words:
+    return {p: "" for p in phrases}
 
 
-def look(*phrases):
-    return dict.fromkeys(phrases, None)
+def look(*phrases: str) -> Words:
+    return {p: None for p in phrases}
 
 
-def same(*phrases):
+def same(*phrases: str) -> Words:
     return {p: p for p in phrases}
 
 
-def opener(*phrases):
+def opener(*phrases: str) -> Words:
     """"The point is that X" / "The point is, X" / "The point is: X" → "X"."""
     return {f"{p}{f}": "" for p in phrases for f in (" that", ",", ":")}
 
 
 # Emphasis. AI emphasises everything, so all of it goes. "very important" stays as the one way to mark weight.
-EMPHASIS = gone(
+EMPHASIS: Words = gone(
     "real", "genuine", "actual", "honest", "exact",
     "really", "truly", "literally", "absolutely", "incredibly", "deeply", "fundamentally",
     "genuinely", "honestly", "actually", "quietly", "crucially", "critically", "importantly",
@@ -41,7 +43,7 @@ EMPHASIS = gone(
 )
 
 # Throat-clearing. Says nothing, so nothing replaces it.
-FILLER = gone(
+FILLER: Words = gone(
     "at the end of the day", "at its core", "when all is said and done",
     "it's worth noting that", "it is worth noting that", "it's worth noting", "it is worth noting",
     "worth noting that", "worth noting", "it's worth mentioning that", "it is worth mentioning that",
@@ -60,19 +62,20 @@ FILLER = gone(
 )
 
 # Verbs borrowed from other trades that are also nouns, so only when used as verbs: "the surface" is safe.
-VERBS = {
+VERBS: Words = {
     "leverage": "use", "harness": "use", "surface": "show", "underscore": "show", "dive into": "look at",
     "foster": "help", "assist": "help", "compound": "grow", "bump into": "run into", "endeavor": "try",
     "attempt": "try", "purchase": "buy",
-} | look("circle back", "double down", "lean into", "sit with", "reach for", "arrive at", "come back to", "unlock", "empower", "elevate")
+    **look("circle back", "double down", "lean into", "sit with", "reach for", "arrive at", "come back to", "unlock", "empower", "elevate"),
+}
 
 # Hard words with easy twins, and hype adjectives that say nothing.
-LINKERS = {
+LINKERS: dict[str, str] = {
     "however": "but", "therefore": "so", "thus": "so", "hence": "so", "consequently": "so",
     "additionally": "also", "furthermore": "also", "moreover": "also", "nevertheless": "still",
     "nonetheless": "still", "subsequently": "then",
 }
-PLAIN = {
+PLAIN: Words = {
     "utilize": "use", "unpack": "explain", "delve into": "look at", "delve": "look", "navigate": "handle",
     "facilitate": "help", "shed light on": "explain", "double-click on": "look at", "commence": "start",
     "ascertain": "find out", "demonstrate": "show", "obtain": "get", "terminate": "end", "pressure-test": "test",
@@ -85,13 +88,13 @@ PLAIN = {
     "utilization": "use", "methodology": "method", "myriad": "many", "a plethora of": "many",
     "realm": "area", "paradigm shift": "big change", "throughline": "theme", "lessons learned": "lessons",
     "comprehensive": "full",
-} | LINKERS | {f"{k},": v for k, v in LINKERS.items()} | gone(
-    "load-bearing", "transformative", "game-changing", "groundbreaking", "cutting-edge",
-    "robust", "seamless", "intricate", "holistic", "pivotal",
-)
+    **LINKERS,
+    **{f"{k},": v for k, v in LINKERS.items()},
+    **gone("load-bearing", "transformative", "game-changing", "groundbreaking", "cutting-edge", "robust", "seamless", "intricate", "holistic", "pivotal"),
+}
 
 # What naud can see but not fix blindly. It points, you rewrite.
-LOOK = look(
+LOOK: Words = look(
     "worth", "physics", "the shape of", "shape of", "the engine", "hit hardest", "hits the hardest", "land hardest",
     "the tell", "this matters", "it matters", "that matters", "because it matters", "can't stop thinking about",
     "double-click", "lean in", "come along", "dispatches from", "field notes", "best operators", "top practitioners",

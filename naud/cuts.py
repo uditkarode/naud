@@ -2,17 +2,18 @@
 from itertools import takewhile
 
 from lemminflect import getInflection
+from spacy.tokens import Span, Token
 
 from .core import Edit
 
-SUBJECT = {"nsubj", "nsubjpass", "csubj", "expl"}
+SUBJECT: frozenset[str] = frozenset({"nsubj", "nsubjpass", "csubj", "expl"})
 
 
-def flag(span, rule):
+def flag(span: Span, rule: str) -> Edit:
     return Edit(span.start_char, span.end_char, None, rule)
 
 
-def cut(span, rule):
+def cut(span: Span, rule: str) -> Edit:
     """Drop a span. Take with it what it leaves stranded: adverbs, *stars* or a hyphen on it, a dangling comma, an empty sentence."""
     doc, s, e = span.doc, span.start, span.end
     while s > 0 and doc[s - 1].dep_ == "advmod" and s <= doc[s - 1].head.i < e:
@@ -30,7 +31,7 @@ def cut(span, rule):
     return Edit(doc[s].idx, last.idx + len(last) + (0 if keep_space else len(last.whitespace_)), "", rule)
 
 
-def bend(word, like):
+def bend(word: str, like: Token) -> str:
     """Inflect `word` the way `like` is inflected, keeping its case."""
     if like.lemma_ == word:
         return like.text
@@ -39,26 +40,29 @@ def bend(word, like):
     return word[0].upper() + word[1:] if like.is_title else word
 
 
-def swap(span, words, rule):
+def swap(span: Span, words: str, rule: str) -> Edit:
     """Say `words` in place of the span."""
     first, *rest = words.split()
     return Edit(span.start_char, span.end_char, " ".join([bend(first, span[0]), *rest]), rule)
 
 
-def glue(span, text, rule):
+def glue(span: Span, text: str, rule: str) -> Edit:
     """Say `text` in place of a span and the space on both sides of it."""
     doc, last = span.doc, span[-1]
     start = doc[span.start - 1].idx + len(doc[span.start - 1]) if span.start else span.start_char
     return Edit(start, last.idx + len(last) + len(last.whitespace_), text, rule)
 
 
-def reach(span):
+def reach(span: Span) -> Span:
     """Stretch a span over the phrase hanging off its end, as far as the parse allows."""
     doc = span.doc
     if span.end == len(doc):
         return span
     first = doc[span.end]
-    fits = lambda t: t.left_edge.i >= span.start and t.dep_ != "ROOT" and not any(c.dep_ in SUBJECT for c in t.children)
+
+    def fits(t: Token) -> bool:
+        return t.left_edge.i >= span.start and t.dep_ != "ROOT" and not any(c.dep_ in SUBJECT for c in t.children)
+
     end = max((t.right_edge.i + 1 for t in takewhile(fits, (first, *first.ancestors))), default=span.end)
     while end > span.end and doc[end - 1].is_punct:
         end -= 1

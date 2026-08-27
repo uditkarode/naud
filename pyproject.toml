@@ -18,3 +18,7 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
 packages = ["naud"]
+
+[tool.mypy]
+strict = true
+ignore_missing_imports = true

@@ -8,7 +8,7 @@ import sys
 from . import clean, lint
 
 
-def main():
+def main() -> None:
     mode, *path = sys.argv[1:] or ["lint"]
     text = open(path[0]).read() if path else sys.stdin.read()
     if mode == "clean":

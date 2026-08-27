@@ -1,9 +1,10 @@
 """The parser, and what an edit is. Every part of naud uses both."""
-from typing import NamedTuple
+from typing import NamedTuple, Self
 
 import spacy
+from spacy.language import Language
 
-nlp = spacy.load("en_core_web_sm")
+nlp: Language = spacy.load("en_core_web_sm")
 
 
 class Edit(NamedTuple):
@@ -14,10 +15,10 @@ class Edit(NamedTuple):
     text: str | None
     rule: str
 
-    def shift(self, by):
+    def shift(self, by: int) -> Self:
         return self._replace(start=self.start + by, end=self.end + by)
 
-    def yields_to(self, kept):
+    def yields_to(self, kept: "Edit") -> bool:
         """True when an edit kept earlier already covers this ground."""
         if kept.text is None:
             return False
