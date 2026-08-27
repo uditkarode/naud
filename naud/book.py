@@ -1,0 +1,108 @@
+"""The words. Each table maps a phrase, written in base form, to what to say instead:
+a word says that (verbs bend to fit: uses, used), "" says nothing, None only points at it,
+and the phrase itself keeps it, so "real estate" survives the ban on "real"."""
+
+# How much is too much, from ASD-STE100 (Simplified Technical English), Issue 9.
+WORDS = 20  # per sentence. Rule 5.1 says 20 for instructions, rule 6.3 says 25 for description.
+SENTENCES = 6  # per paragraph, rule 6.6.
+
+
+def gone(*phrases):
+    return dict.fromkeys(phrases, "")
+
+
+def look(*phrases):
+    return dict.fromkeys(phrases, None)
+
+
+def same(*phrases):
+    return {p: p for p in phrases}
+
+
+def opener(*phrases):
+    """"The point is that X" / "The point is, X" / "The point is: X" → "X"."""
+    return {f"{p}{f}": "" for p in phrases for f in (" that", ",", ":")}
+
+
+# Emphasis. AI emphasises everything, so all of it goes. "very important" stays as the one way to mark weight.
+EMPHASIS = gone(
+    "real", "genuine", "actual", "honest", "exact",
+    "really", "truly", "literally", "absolutely", "incredibly", "deeply", "fundamentally",
+    "genuinely", "honestly", "actually", "quietly", "crucially", "critically", "importantly",
+    "notably", "remarkably", "profoundly", "utterly", "very", "extremely", "super", "highly",
+    "massively", "hugely", "wildly", "insanely", "seriously", "definitely", "certainly",
+    "clearly", "obviously", "essentially", "basically",
+) | {
+    "the whole": "the", "the entire": "the", "be exactly": "be", "the exact same": "the same", "not really": "not quite",
+    **{f"the right {n}": f"the {n}" for n in "way question answer tool time call move thing approach choice decision".split()},
+} | same(
+    "real estate", "real time", "real-time", "real number", "real numbers", "in real life",
+    "very important", "extremely important", "honest with",
+)
+
+# Throat-clearing. Says nothing, so nothing replaces it.
+FILLER = gone(
+    "at the end of the day", "at its core", "when all is said and done",
+    "it's worth noting that", "it is worth noting that", "it's worth noting", "it is worth noting",
+    "worth noting that", "worth noting", "it's worth mentioning that", "it is worth mentioning that",
+    "it's important to note that", "it is important to note that", "it's important to note", "it is important to note",
+    "here's the thing", "here is the thing", "here's where it gets interesting", "here is where it gets interesting",
+    "to be clear", "let me be clear", "make no mistake", "to be honest", "in all honesty", "to be fair",
+    "let's break it down", "let's break this down", "it cannot be overstated",
+    "great question", "good question", "excellent question", "hope this helps", "hope that helps",
+    "needless to say", "it goes without saying that", "it goes without saying", "as you can see",
+    "one important thing", "one thing to note", "one thing to watch for", "worth being clear",
+    "bottom line", "in a nutshell", "long story short", "simply put", "put simply",
+) | opener(
+    "the point is", "the thing is", "the bottom line is", "the truth is", "the fact is",
+    "the honest answer is", "the honest take is", "the honest version is", "the real fact is", "the short answer is",
+    "the key thing is", "the important thing is", "the main thing is",
+)
+
+# Verbs borrowed from other trades that are also nouns, so only when used as verbs: "the surface" is safe.
+VERBS = {
+    "leverage": "use", "harness": "use", "surface": "show", "underscore": "show", "dive into": "look at",
+    "foster": "help", "assist": "help", "compound": "grow", "bump into": "run into", "endeavor": "try",
+    "attempt": "try", "purchase": "buy",
+} | look("circle back", "double down", "lean into", "sit with", "reach for", "arrive at", "come back to", "unlock", "empower", "elevate")
+
+# Hard words with easy twins, and hype adjectives that say nothing.
+LINKERS = {
+    "however": "but", "therefore": "so", "thus": "so", "hence": "so", "consequently": "so",
+    "additionally": "also", "furthermore": "also", "moreover": "also", "nevertheless": "still",
+    "nonetheless": "still", "subsequently": "then",
+}
+PLAIN = {
+    "utilize": "use", "unpack": "explain", "delve into": "look at", "delve": "look", "navigate": "handle",
+    "facilitate": "help", "shed light on": "explain", "double-click on": "look at", "commence": "start",
+    "ascertain": "find out", "demonstrate": "show", "obtain": "get", "terminate": "end", "pressure-test": "test",
+    "in order to": "to", "prior to": "before", "due to the fact that": "because", "in the event that": "if",
+    "at this point in time": "now", "a number of": "some", "the majority of": "most",
+    "in spite of the fact that": "although", "despite the fact that": "although", "for the purpose of": "to",
+    "on a daily basis": "daily", "in close proximity to": "near", "approximately": "about",
+    "sufficient": "enough", "numerous": "many", "additional": "more", "initial": "first", "optimal": "best",
+    "individual": "person", "regarding": "about", "concerning": "about", "assistance": "help",
+    "utilization": "use", "methodology": "method", "myriad": "many", "a plethora of": "many",
+    "realm": "area", "paradigm shift": "big change", "throughline": "theme", "lessons learned": "lessons",
+    "comprehensive": "full",
+} | LINKERS | {f"{k},": v for k, v in LINKERS.items()} | gone(
+    "load-bearing", "transformative", "game-changing", "groundbreaking", "cutting-edge",
+    "robust", "seamless", "intricate", "holistic", "pivotal",
+)
+
+# What naud can see but not fix blindly. It points, you rewrite.
+LOOK = look(
+    "worth", "physics", "the shape of", "shape of", "the engine", "hit hardest", "hits the hardest", "land hardest",
+    "the tell", "this matters", "it matters", "that matters", "because it matters", "can't stop thinking about",
+    "double-click", "lean in", "come along", "dispatches from", "field notes", "best operators", "top practitioners",
+    "first wave", "the only thing that", "hold that thought", "stays yours", "stay yours", "mature", "leave you with",
+    "in my chest", "where I landed", "seen this movie before", "been here before", "turns on", "useful thing",
+    "the useful part", "want you to see", "hit a nerve", "struck a nerve", "stuck with me", "stayed with me",
+    "struck a chord", "wreck", "shatter", "obliterate", "what got me", "the thing that got me", "doing the work",
+    "heavy lifting", "most people", "a lot of folks", "nobody I know", "settled question", "rides along", "rides on",
+    "pave the way", "landscape", "testament to", "when it comes to", "this is where", "reflecting a broader trend",
+    "marking a significant shift", "right-size", "north star", "true north", "strategic imperative", "key takeaway",
+    "key takeaways", "tapestry", "it changes the task", "it changes the story", "which brings me back to",
+    "brings me back to", "brings us back to", "in summary", "in conclusion", "to summarize", "to sum up",
+    "what this means for you", "the practical read", "game-changer", "supercharge", "synergy", "not that",
+)
