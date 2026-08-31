@@ -54,5 +54,19 @@ each batch over. Add this to `~/.claude/settings.json`, with the path of your `n
 The session start warms the server up, and a batch that finds it gone starts it again.
 Only what is drawn changes. The transcript, and what the model reads back, stay as written.
 
+macOS has no `setsid` and no `$XDG_RUNTIME_DIR`, and `socat` comes from `brew install socat`. The
+socket goes in `$TMPDIR` instead, and `nohup` in a subshell detaches the server:
+
+```json
+{
+  "hooks": {
+    "SessionStart": [{"hooks": [{"type": "command",
+      "command": "(nohup /path/to/naud serve \"${TMPDIR:-/tmp}/naud.sock\" >/dev/null 2>&1 &)"}]}],
+    "MessageDisplay": [{"hooks": [{"type": "command",
+      "command": "socat -t10 - \"UNIX-CONNECT:${TMPDIR:-/tmp}/naud.sock\" 2>/dev/null || (nohup /path/to/naud serve \"${TMPDIR:-/tmp}/naud.sock\" >/dev/null 2>&1 &)"}]}]
+  }
+}
+```
+
 Add a phrase to a table in `book.py` to ban it. Add a finder to a rules module and a `Rule`
 to `rules/__init__.py` to catch a shape. Add a case to `tests/` for it.
