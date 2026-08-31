@@ -9,14 +9,19 @@ CLEFT = [
     ("It's not for everyone, but it works.", "It's not for everyone, but it works."),
 ]
 TAIL = [
-    ("I verified it rather than guessing.", "I verified it."),
+    ("I verified it rather than guessing.", "I verified it (not: guess)."),
+    ("It will clone rather than rebuild.", "It will clone (not: rebuild)."),
+    ("It clones rather than rebuilding.", "It clones (not: rebuild)."),
+    ("Exhaustion hangs forever instead of erroring.", "Exhaustion hangs forever (not: error)."),
+    ("It stayed alive instead of being destroyed.", "It stayed alive (not: destroyed)."),
+    ("It starts a run normally, instead of failing.", "It starts a run normally (not: fail)."),
     ("Rather than guessing, verify it.", "Verify it."),
-    ("It is measured, not guessed.", "It is measured."),
-    ("It is measured, not guessed, and it is fast.", "It is measured, and it is fast."),
-    ("The code is simple and not clever.", "The code is simple."),
-    ("It uses a model rather than a simple one.", "It uses a model."),
+    ("It is measured, not guessed.", "It is measured (not: guessed)."),
+    ("It is measured, not guessed, and it is fast.", "It is measured (not: guessed), and it is fast."),
+    ("The code is simple and not clever.", "The code is simple (not: clever)."),
+    ("It uses a model rather than a simple one.", "It uses a model (not: a simple one)."),
+    ("The size is 1 byte instead of 848.", "The size is 1 byte (not: 848)."),
     ("Use spaCy instead of NLTK for this.", "Use spaCy instead of NLTK for this."),
-    ("The size is 1 byte instead of 848.", "The size is 1 byte instead of 848."),
 ]
 STACCATO = [
     ("No fluff. No hype. Just results.", "Results."),

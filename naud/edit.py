@@ -3,7 +3,7 @@ from collections.abc import Callable, Iterable
 from enum import Enum
 from typing import NamedTuple, Self
 
-from lemminflect import getInflection
+from lemminflect import getInflection, getLemma
 from spacy.tokens import Doc, Span, Token
 
 
@@ -63,6 +63,11 @@ def bend(word: str, like: Token) -> str:
     if like.tag_[:2] in ("VB", "NN"):
         word = (getInflection(word, like.tag_) or [word])[0]
     return word[0].upper() + word[1:] if like.is_title else word
+
+
+def base(word: Token) -> str:
+    """The plain form of an inflected verb, so `rebuilding` gives `rebuild`."""
+    return str(getLemma(word.text, "VERB")[0])
 
 
 def repunctuate(span: Span, text: str) -> Edit:

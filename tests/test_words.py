@@ -50,6 +50,46 @@ LIVES = [
     ("The value has sat at zero.", "The value has been at zero."),
     ("Sit here.", "Sit here."),
 ]
+WORTH = [
+    ("Worth knowing: this deploy runs migration 17.", "This deploy runs migration 17."),
+    ("Also worth knowing: the seeded account is gone.", "The seeded account is gone."),
+    ("Worth saying plainly: this is cleanup.", "This is cleanup."),
+    ("Two things worth knowing: your local Node is 26.", "Two things. Your local Node is 26."),
+    ("One thing worth your call: the command line is stored.", "One thing: the command line is stored."),
+    ("One deviation from prod worth flagging: prod had extensions.", "One deviation from prod: prod had extensions."),
+    ("Both are worth fixing.", "Both need fixing."),
+    ("You're right that it's worth fixing properly.", "You're right that it needs fixing properly."),
+    ("The third has 6 cheap unit tests worth keeping.", "The third has 6 quick unit tests to keep."),
+    ("The one thing worth keeping from it: the template.", "The one thing to keep from it: the template."),
+    ("The template is worth keeping.", "The template needs keeping."),
+    ("Worth fixing in OC Lab.", "Needs fixing in OC Lab."),
+    ("Kept for rollback; worth deleting once the new one lands.", "Kept for rollback; needs deleting once the new one lands."),
+    ("It is not worth doing.", "It is not worth doing."),
+    ("It occupies a disk's worth of space.", "It occupies a disk's worth of space."),
+]
+BITE = [
+    ("The 10-min cap will bite again on any slow install.", "The 10-min cap will cause a problem again on any slow install."),
+    ("Let me verify the one thing that actually bites.", "Let me verify the one thing that causes a problem."),
+    ("One thing that will keep biting: the lockfile.", "One thing that will keep causing a problem: the lockfile."),
+    ("Only bites a recovered process.", "Only bites a recovered process."),
+]
+PLAINER = [
+    ("Two things I want to flag.", "Two things I want to mention."),
+    ("The PR itself exercises the new routing.", "The PR itself runs the new routing."),
+    ("All five commands contend for the same data disk.", "All five commands compete for the same data disk."),
+    ("The guest agent is baked into the image.", "The guest agent is built into the image."),
+    ("Swarm services torn down, the volume removed.", "Swarm services cleaned up, the volume removed."),
+    ("Raising it to 10s costs nothing.", "Raising it to 10s loses nothing."),
+    ("Adding a logger would introduce a new pattern.", "Adding a logger would add a new pattern."),
+    ("Caddy isn't preserving the header.", "Caddy isn't keeping the header."),
+    ("This supersedes the earlier behavior.", "This replaces the earlier behavior."),
+    ("Verifying the kernel-level cause empirically.", "Verifying the kernel-level cause by testing."),
+    ("Trivial to narrow to that.", "Simple to narrow to that."),
+    ("Both fixes are in flight now.", "Both fixes are running now."),
+    ("Start it if you want to eyeball the behavior.", "Start it if you want to check the behavior."),
+    ("Canonical build scripts exist.", "Standard build scripts exist."),
+    ("Nightly is just the refresh cadence.", "Nightly is just the refresh pace."),
+]
 STRANDED = [
     ("the **real** problem", "the problem"),
     ("There are two genuinely-different routes.", "There are two different routes."),
@@ -57,7 +97,7 @@ STRANDED = [
 ]
 
 
-@pytest.mark.parametrize(("text", "expected"), EMPHASIS + FILLER + JARGON + LIVES + STRANDED)
+@pytest.mark.parametrize(("text", "expected"), EMPHASIS + FILLER + JARGON + LIVES + WORTH + BITE + PLAINER + STRANDED)
 def test_words(cleaned: Callable[[str], str], text: str, expected: str) -> None:
     assert cleaned(text) == expected
 
@@ -66,6 +106,8 @@ def test_words(cleaned: Callable[[str], str], text: str, expected: str) -> None:
     ("The data is real.", "emphasis"),
     ('The word "real" is banned.', "emphasis"),
     ("Which brings me back to the parser.", "look"),
+    ("CI was still running, worth a glance before you trust the deploy.", "worth"),
+    ("The stated mechanism is wrong.", "look"),
     ("This means the parser is slow.", "vague"),
 ])
 def test_only_pointed_at(cleaned: Callable[[str], str], looks: Callable[[str], set[str]], text: str, rule: str) -> None:

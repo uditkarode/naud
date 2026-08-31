@@ -71,7 +71,9 @@ FILLER: Words = gone(
 VERBS: Words = {
     "leverage": "use", "harness": "use", "surface": "show", "underscore": "show", "dive into": "look at",
     "foster": "help", "assist": "help", "compound": "grow", "bump into": "run into", "endeavor": "try",
-    "attempt": "try", "purchase": "buy",
+    "attempt": "try", "purchase": "buy", "flag": "mention", "exercise": "run", "contend for": "compete for",
+    "eyeball": "check", "tear down": "clean up", "bake into": "build into",
+    "cost you": "lose you", "cost nothing": "lose nothing", "buy you": "give you", "buy nothing": "gain nothing",
     **look("circle back", "double down", "lean into", "sit with", "reach for", "arrive at", "come back to", "unlock", "empower", "elevate"),
 }
 
@@ -96,6 +98,9 @@ PLAIN: Words = {
     "comprehensive": "full", "an identical": "the same", "identical to": "the same as",
     "be identical": "be the same", "be identical to": "be the same as", "currently": "now", "typically": "usually", "converge": "settle", "hazard": "risk", "predate": "come before",
     "churn": "change", "churn out": "produce", "churn through": "work through",
+    "introduce": "add", "preserve": "keep", "supersede": "replace",
+    "canonical": "standard", "trivial": "simple", "trivially": "easily", "caveat": "catch", "cadence": "pace",
+    "empirically": "by testing", "in flight": "running", "in-flight": "running", "cheap": "quick", "expensive": "slow",
     **keep("customer churn", "churn rate"),
     **LINKERS,
     **{f"{k},": v for k, v in LINKERS.items()},
@@ -117,4 +122,5 @@ LOOK: Words = look(
     "key takeaways", "tapestry", "it changes the task", "it changes the story", "which brings me back to",
     "brings me back to", "brings us back to", "in summary", "in conclusion", "to summarize", "to sum up",
     "what this means for you", "the practical read", "game-changer", "supercharge", "synergy", "not that",
+    "mechanism", "yank",
 )

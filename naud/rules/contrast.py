@@ -4,7 +4,7 @@ from itertools import takewhile
 
 from spacy.tokens import Doc, Span, Token
 
-from ..edit import Edit, cut, look
+from ..edit import Edit, base, cut, look, replace
 from .grammar import DASHES, SUBJECT, is_subject, negated, pairs, subject_of
 from .match import Pattern, matching, pattern, spans
 
@@ -34,7 +34,7 @@ def uncleft(span: Span) -> Edit:
 cleft = matching(lambda: CLEFT, uncleft)
 
 
-# `A rather than B` → `A`
+# `A rather than B` → `A (not: B)`
 CONNECTORS = ("rather than", "instead of", "as opposed to", "and not", ", not")
 CLAUSE_END = frozenset({",", ".", ";", ":", ")", "!", "?", *DASHES})
 
@@ -55,20 +55,30 @@ def phrase_after(span: Span) -> Span:
     return doc[span.start : end]
 
 
-def has_names(b: Span) -> bool:
-    """A number or a name is what a `rather than` is there to say."""
-    return any(t.text[0].isdigit() or t.pos_ == "PROPN" for t in b)
+def alone(b: Span) -> str:
+    """B as it would stand on its own: `rather than rebuilding` gives `rebuild`, `being destroyed` gives `destroyed`."""
+    if b[0].lower_ == "being" and len(b) > 1:
+        return b[1:].text
+    if b[0].tag_ == "VBG":
+        return base(b[0]) + b.text[len(b[0]) :]
+    return b.text
 
 
 def untail(span: Span) -> Edit:
-    """`A rather than B` → `A`, when B is plain and ends the clause. Otherwise only look."""
+    """`A rather than B` → `A (not: B)`, when B is plain and ends the clause. Otherwise only look.
+    A comma left hanging in front of the pair goes with it."""
     doc, phrase = span.doc, phrase_after(span)
     b = phrase[len(span) :]
     ends_clause = phrase.end == len(doc) or doc[phrase.end].text in CLAUSE_END
     participle = span[-1].lower_ == "not" and len(b) > 0 and b[0].tag_ == "VBG"
-    if not b or has_names(b) or participle or not ends_clause:
+    if not b or participle or not ends_clause:
         return look(span)
-    return cut(phrase)
+    if span.start == span.sent.start:  # `Rather than B, A` has no A in front of it to mark
+        return cut(phrase)
+    hanging = phrase.start > 0 and doc[phrase.start - 1].text == "," and doc[phrase.start].text != ","
+    pair = doc[phrase.start - hanging : phrase.end]
+    glued = pair.start_char > 0 and not doc.text[pair.start_char - 1].isspace()
+    return replace(pair, f"{' ' if glued else ''}(not: {alone(b)})")
 
 
 tail = matching(lambda: [pattern(connector) for connector in CONNECTORS], untail)

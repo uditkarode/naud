@@ -1,4 +1,5 @@
-"""Rules about words: the book's tables, `lives in` and `sits at`, and a sentence that opens on a bare `This`."""
+"""Rules about words: the book's tables, `lives in` and `sits at`, `worth knowing` and what `bites`,
+and a sentence that opens on a bare `This`."""
 from collections.abc import Iterator
 from functools import cache
 
@@ -6,10 +7,10 @@ from spacy.matcher import Matcher
 from spacy.tokens import Doc, Span, Token
 
 from ..book import Entry, Words
-from ..edit import Edit, Finder, Kind, cut, keep, look, replace, say
+from ..edit import Edit, Finder, Kind, base, bend, cut, keep, look, replace, say
 from ..parse import model
 from .grammar import as_span, is_subject, subject_of
-from .match import matching, pattern
+from .match import Pattern, matching, pattern
 
 
 def table(entries: Words, pos: str | None = None) -> Finder:
@@ -88,6 +89,75 @@ def unplace(span: Span) -> Edit:
 
 
 lives = matching(lambda: [pattern(f"{verb} {place}", "VERB") for verb in VERBS for place in PLACES], unplace)
+
+
+# `Worth knowing: X` → `X`, `one thing worth flagging: X` → `one thing: X`, and `both are worth fixing` → `both need fixing`.
+NOTES = ("knowing", "noting", "flagging", "saying", "stating", "mentioning", "a mention", "a glance", "your call")
+FRAME_LEAD = frozenset({"ADV", "CCONJ", "PUNCT"})
+COLON_REACH = 5  # tokens of frame (`worth knowing before you deploy:`) to look through for the colon
+
+
+def unframe(span: Span) -> Edit:
+    """A frame announces what follows a colon, so the frame goes. Opening its sentence it takes the colon
+    with it, so the fact stands alone. In the middle of one the colon stays and only the frame goes.
+    Without a colon nothing is being announced (`worth a glance before you trust it`), so it is only looked at."""
+    doc, sent = span.doc, span.sent
+    colon = next((t.i for t in doc[span.end : min(span.end + COLON_REACH, len(doc))] if t.text == ":"), None)
+    if colon is None:
+        return look(span)
+    if any(t.pos_ not in FRAME_LEAD for t in doc[sent.start : span.start]):
+        before = doc[span.start - 1]
+        return Edit(before.idx + len(before), span.end_char, Kind.CUT)
+    return cut(doc[sent.start : colon + 1])
+
+
+def leans_back(span: Span) -> bool:
+    """`tests worth keeping` leans on the words in front of it, where `; worth deleting` stands on its own."""
+    doc, at = span.doc, span.start
+    while at > 0 and doc[at - 1].pos_ == "ADV":
+        at -= 1
+    return at > 0 and (doc[at - 1].is_alpha or doc[at - 1].like_num or doc[at - 1].text == ",")
+
+
+def unworth(span: Span) -> Edit:
+    """`X is worth fixing` → `X needs fixing`, `tests worth keeping` → `tests to keep`, `worth deleting` →
+    `needs deleting`, and a frame is unframed. After a `be` a frame is the sentence's own predicate
+    (`whether it's worth a mention`), so it is only looked at."""
+    doc, after = span.doc, span[1:]
+    before = doc[span.start - 1] if span.start else None
+    gerund = after[0].tag_ == "VBG"
+    if before is not None and (before.lemma_ == "not" or before.text == "n't"):
+        return look(span)
+    if before is not None and before.lemma_ == "be":
+        if not gerund:
+            return look(span)
+        glued = before.idx > 0 and not doc.text[before.idx - 1].isspace()
+        return replace(doc[before.i : span.end], f"{' ' if glued else ''}{bend('need', before)} {after.text}")
+    if after.text.lower() in NOTES:
+        return unframe(span)
+    if not gerund:
+        return look(span)
+    if leans_back(span):
+        return replace(span, f"to {base(after[0])}")
+    return replace(span, f"{'Needs' if span[0].is_title else 'needs'} {after.text}")
+
+
+def worth_patterns() -> list[Pattern]:
+    return [[{"LOWER": "worth"}, {"TAG": "VBG"}], *(pattern(f"worth {note}") for note in NOTES)]
+
+
+worth = matching(worth_patterns, unworth)
+
+
+# `the cap will bite again` → `the cap will cause a problem again`. What it bites is meant when there is an object,
+# as in `only bites a recovered process`, and that is only looked at.
+def unbite(span: Span) -> Edit:
+    if any(child.dep_ == "dobj" for child in span.root.children):
+        return look(span)
+    return say(span, "cause a problem")
+
+
+bites = matching(lambda: [[{"LEMMA": "bite", "POS": "VERB"}]], unbite)
 
 
 # A sentence that opens on a bare `This` points at something only the writer can see.

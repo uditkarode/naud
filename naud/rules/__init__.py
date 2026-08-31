@@ -19,6 +19,8 @@ RULES: list[Rule] = [
     Rule("not-but", contrast.not_but),
     Rule("not-that", contrast.not_that),
     Rule("filler", words.table(book.FILLER)),
+    Rule("worth", words.worth),
+    Rule("bite", words.bites),
     Rule("emphasis", words.table(book.EMPHASIS)),
     Rule("jargon", words.table(book.VERBS, pos="VERB")),
     Rule("plain", words.table(book.PLAIN)),
