@@ -111,12 +111,22 @@ def unframe(span: Span) -> Edit:
     return cut(doc[sent.start : colon + 1])
 
 
+def is_negation(word: Token) -> bool:
+    return word.lemma_ in ("not", "never") or word.text == "n\u0027t"
+
+
+def preceding(span: Span) -> Token | None:
+    """The word in front of the span, past any adverb, as in `is genuinely worth fixing`."""
+    doc, at = span.doc, span.start
+    while at > 0 and doc[at - 1].pos_ == "ADV" and not is_negation(doc[at - 1]):
+        at -= 1
+    return doc[at - 1] if at else None
+
+
 def leans_back(span: Span) -> bool:
     """`tests worth keeping` leans on the words in front of it, where `; worth deleting` stands on its own."""
-    doc, at = span.doc, span.start
-    while at > 0 and doc[at - 1].pos_ == "ADV":
-        at -= 1
-    return at > 0 and (doc[at - 1].is_alpha or doc[at - 1].like_num or doc[at - 1].text == ",")
+    word = preceding(span)
+    return word is not None and (word.is_alpha or word.like_num or word.text == ",")
 
 
 def unworth(span: Span) -> Edit:
@@ -124,9 +134,9 @@ def unworth(span: Span) -> Edit:
     `needs deleting`, and a frame is unframed. After a `be` a frame is the sentence's own predicate
     (`whether it's worth a mention`), so it is only looked at."""
     doc, after = span.doc, span[1:]
-    before = doc[span.start - 1] if span.start else None
+    before = preceding(span)
     gerund = after[0].tag_ == "VBG"
-    if before is not None and (before.lemma_ == "not" or before.text == "n't"):
+    if before is not None and is_negation(before):
         return look(span)
     if before is not None and before.lemma_ == "be":
         if not gerund:

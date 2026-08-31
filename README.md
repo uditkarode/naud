@@ -54,6 +54,10 @@ each batch over. Add this to `~/.claude/settings.json`, with the path of your `n
 The session start warms the server up, and a batch that finds it gone starts it again.
 Only what is drawn changes. The transcript, and what the model reads back, stay as written.
 
+Turn `verbose` off, in `/config` or as `"verbose": false`. Claude Code draws the hook's text only
+while verbose is off, so with it on a reply shows cleaned as it streams and then reverts to what
+the model wrote.
+
 macOS has no `setsid` and no `$XDG_RUNTIME_DIR`, and `socat` comes from `brew install socat`. The
 socket goes in `$TMPDIR` instead, and `nohup` in a subshell detaches the server:
 

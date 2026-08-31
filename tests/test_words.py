@@ -58,6 +58,7 @@ WORTH = [
     ("One thing worth your call: the command line is stored.", "One thing: the command line is stored."),
     ("One deviation from prod worth flagging: prod had extensions.", "One deviation from prod: prod had extensions."),
     ("Both are worth fixing.", "Both need fixing."),
+    ("It is genuinely worth fixing.", "It needs fixing."),
     ("You're right that it's worth fixing properly.", "You're right that it needs fixing properly."),
     ("The third has 6 cheap unit tests worth keeping.", "The third has 6 quick unit tests to keep."),
     ("The one thing worth keeping from it: the template.", "The one thing to keep from it: the template."),
@@ -90,6 +91,13 @@ PLAINER = [
     ("Canonical build scripts exist.", "Standard build scripts exist."),
     ("Nightly is just the refresh cadence.", "Nightly is just the refresh pace."),
 ]
+HYPE = [
+    ("One important thing to flag.", ""),
+    ("The legit thing is that the cause is in the stack.", "The thing is that the cause is in the stack."),
+    ("It isn't small, it changes the story.", "It isn't small, it is a significant detail."),
+    ("This needs your opinion, because it dictates the session.", "This needs your opinion, because it is a significant detail."),
+    ("What needs a glance from you is the plan.", "What you need to check is the plan."),
+]
 STRANDED = [
     ("the **real** problem", "the problem"),
     ("There are two genuinely-different routes.", "There are two different routes."),
@@ -97,7 +105,7 @@ STRANDED = [
 ]
 
 
-@pytest.mark.parametrize(("text", "expected"), EMPHASIS + FILLER + JARGON + LIVES + WORTH + BITE + PLAINER + STRANDED)
+@pytest.mark.parametrize(("text", "expected"), EMPHASIS + FILLER + JARGON + LIVES + WORTH + BITE + PLAINER + HYPE + STRANDED)
 def test_words(cleaned: Callable[[str], str], text: str, expected: str) -> None:
     assert cleaned(text) == expected
 

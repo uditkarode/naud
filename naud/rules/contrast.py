@@ -4,6 +4,7 @@ from itertools import takewhile
 
 from spacy.tokens import Doc, Span, Token
 
+from ..book import EMPTY
 from ..edit import Edit, base, cut, look, replace
 from .grammar import DASHES, SUBJECT, is_subject, negated, pairs, subject_of
 from .match import Pattern, matching, pattern, spans
@@ -50,6 +51,8 @@ def phrase_after(span: Span) -> Span:
         return t.left_edge.i >= span.start and t.dep_ != "ROOT" and subject_of(t) is None
 
     end = max((t.right_edge.i + 1 for t in takewhile(hangs_off, (first, *first.ancestors))), default=span.end)
+    if end == span.end:  # `architectural, not cosmetic` hangs A off B, so take the rest of the clause
+        end = next((t.i for t in doc[span.end :] if t.text in CLAUSE_END), len(doc))
     while end > span.end and doc[end - 1].is_punct:
         end -= 1
     return doc[span.start : end]
@@ -77,8 +80,11 @@ def untail(span: Span) -> Edit:
         return cut(phrase)
     hanging = phrase.start > 0 and doc[phrase.start - 1].text == "," and doc[phrase.start].text != ","
     pair = doc[phrase.start - hanging : phrase.end]
+    said = alone(b)
+    if said.lower() in EMPTY or (len(b) == 1 and b[0].lemma_.lower() in EMPTY):  # B says nothing, so the tail goes
+        return cut(phrase)
     glued = pair.start_char > 0 and not doc.text[pair.start_char - 1].isspace()
-    return replace(pair, f"{' ' if glued else ''}(not: {alone(b)})")
+    return replace(pair, f"{' ' if glued else ''}`(not: {said})`")
 
 
 tail = matching(lambda: [pattern(connector) for connector in CONNECTORS], untail)
