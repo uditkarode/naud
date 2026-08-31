@@ -83,7 +83,7 @@ LINKERS: dict[str, str] = {
 }
 PLAIN: Words = {
     "utilize": "use", "unpack": "explain", "delve into": "look at", "delve": "look", "navigate": "handle",
-    "facilitate": "help", "shed light on": "explain", "double-click on": "look at", "commence": "start",
+    "facilitate": "help", "shed light on": "explain", "double-click on": "look at", "commence": "start", "say the word": "tell me", "say the word on": "tell me about",
     "ascertain": "find out", "demonstrate": "show", "obtain": "get", "terminate": "end", "pressure-test": "test",
     "in order to": "to", "prior to": "before", "due to the fact that": "because", "in the event that": "if",
     "at this point in time": "now", "a number of": "some", "the majority of": "most",

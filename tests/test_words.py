@@ -38,6 +38,8 @@ JARGON = [
     ("BT currently plays late, as LDAC typically does.", "BT now plays late, as LDAC usually does."),
     ("The rate adjustment needs to converge.", "The rate adjustment needs to settle."),
     ("It predates the speaker.", "It comes before the speaker."),
+    ("Just say the word and I'll do it.", "Just tell me and I'll do it."),
+    ("Say the word on the timeout and I'll fix it.", "Tell me about the timeout and I'll fix it."),
 ]
 LIVES = [
     ("The risk lives in the gap between them.", "The risk is in the gap between them."),
