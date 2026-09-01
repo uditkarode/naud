@@ -23,6 +23,7 @@ RULES: list[Rule] = [
     Rule("worth", words.worth),
     Rule("bite", words.bites),
     Rule("insist", words.insists),
+    Rule("narrow", words.narrows),
     Rule("emphasis", words.table(book.EMPHASIS)),
     Rule("jargon", words.table(book.VERBS, pos="VERB")),
     Rule("plain", words.table(book.PLAIN)),

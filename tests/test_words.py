@@ -108,6 +108,14 @@ HYPE = [
     ("The failures are rare, and they are real.", "The failures are rare."),
     ("And they're real problems.", "And they're problems."),
 ]
+NARROW = [
+    ("It touches the parser and nothing else.", "It touches the parser only."),
+    ("It works on Linux and nothing else, so the risk is small.", "It works on Linux only, so the risk is small."),
+    ("Answer what was asked and nothing else.", "Answer what was asked only."),
+    ("The span stays, and nothing else may touch it.", "The span stays, and nothing else may touch it."),
+    ("It reads config and nothing else when it starts.", "It reads config and nothing else when it starts."),
+    ("And nothing else.", "And nothing else."),
+]
 STRANDED = [
     ("the **real** problem", "the problem"),
     ("There are two genuinely-different routes.", "There are two different routes."),
@@ -115,7 +123,7 @@ STRANDED = [
 ]
 
 
-@pytest.mark.parametrize(("text", "expected"), EMPHASIS + FILLER + JARGON + LIVES + WORTH + BITE + PLAINER + HYPE + STRANDED)
+@pytest.mark.parametrize(("text", "expected"), EMPHASIS + FILLER + JARGON + LIVES + WORTH + BITE + PLAINER + HYPE + NARROW + STRANDED)
 def test_words(cleaned: Callable[[str], str], text: str, expected: str) -> None:
     assert cleaned(text) == expected
 

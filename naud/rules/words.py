@@ -1,5 +1,5 @@
 """Rules about words: the book's tables, `lives in` and `sits at`, `worth knowing`, what `bites`,
-a tail that only insists, and a sentence that opens on a bare `This`."""
+a tail that only insists, a tail that means `only`, and a sentence that opens on a bare `This`."""
 from collections.abc import Iterator
 from functools import cache
 
@@ -10,7 +10,7 @@ from ..book import Entry, Words
 from ..edit import Edit, Finder, Kind, base, bend, cut, keep, look, replace, say
 from ..parse import model
 from .grammar import as_span, is_subject, subject_of
-from .match import Pattern, matching, pattern
+from .match import Pattern, matching, pattern, spans
 
 
 def table(entries: Words, pos: str | None = None) -> Finder:
@@ -175,6 +175,19 @@ bites = matching(lambda: [[{"LEMMA": "bite", "POS": "VERB"}]], unbite)
 REAL_TAIL: Pattern = [{"LOWER": "and"}, {"LOWER": "they"}, {"LEMMA": "be"}, {"LOWER": "real", "DEP": "acomp"}]
 
 insists = matching(lambda: [REAL_TAIL], cut)
+
+
+# `it touches the parser and nothing else` → `it touches the parser only`. The tail has to hang off what
+# came before it and close the clause there. Where it has a verb of its own (`and nothing else may touch it`),
+# or carries a phrase (`and nothing else at all`), `only` cannot stand in its place, so it is left alone.
+NOTHING_ELSE: Pattern = [{"LOWER": "and"}, {"LOWER": "nothing"}, {"LOWER": "else"}]
+nothing_else = spans(lambda: [NOTHING_ELSE])
+
+
+def narrows(doc: Doc) -> Iterator[Edit]:
+    for span in nothing_else(doc):
+        if span[1].dep_ == "conj" and (span.end == len(doc) or doc[span.end].is_punct):
+            yield replace(span, "only")
 
 
 # A sentence that opens on a bare `This` points at something only the writer can see.
