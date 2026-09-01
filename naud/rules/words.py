@@ -1,5 +1,5 @@
-"""Rules about words: the book's tables, `lives in` and `sits at`, `worth knowing` and what `bites`,
-and a sentence that opens on a bare `This`."""
+"""Rules about words: the book's tables, `lives in` and `sits at`, `worth knowing`, what `bites`,
+a tail that only insists, and a sentence that opens on a bare `This`."""
 from collections.abc import Iterator
 from functools import cache
 
@@ -168,6 +168,13 @@ def unbite(span: Span) -> Edit:
 
 
 bites = matching(lambda: [[{"LEMMA": "bite", "POS": "VERB"}]], unbite)
+
+
+# `the failures are rare, and they're real` → the tail only insists, so it goes. Where `real` describes a noun
+# (`and they're real problems`) it is doing a job, so the pattern passes it over.
+REAL_TAIL: Pattern = [{"LOWER": "and"}, {"LOWER": "they"}, {"LEMMA": "be"}, {"LOWER": "real", "DEP": "acomp"}]
+
+insists = matching(lambda: [REAL_TAIL], cut)
 
 
 # A sentence that opens on a bare `This` points at something only the writer can see.

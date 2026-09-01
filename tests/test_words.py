@@ -104,6 +104,9 @@ HYPE = [
     ("One thing that needs your word, not mine:", "One thing I want you to check:"),
     ("Two things that need your word:", "Two things I want you to check:"),
     ("This needs your word, not mine.", "I want you to check."),
+    ("There are two risks here, and they're real.", "There are two risks here."),
+    ("The failures are rare, and they are real.", "The failures are rare."),
+    ("And they're real problems.", "And they're problems."),
 ]
 STRANDED = [
     ("the **real** problem", "the problem"),
