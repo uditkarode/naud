@@ -13,6 +13,7 @@ class Rule:
 
 
 RULES: list[Rule] = [
+    Rule("idiom", words.table(book.IDIOMS)),
     Rule("cleft", contrast.cleft),
     Rule("tail", contrast.tail),
     Rule("staccato", contrast.staccato),

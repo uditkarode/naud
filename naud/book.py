@@ -30,6 +30,12 @@ def opener(*phrases: str) -> Words:
     return {f"{p}{f}": Kind.CUT for p in phrases for f in (" that", ",", ":")}
 
 
+# Whole phrases, taken as one. They are settled first, so no other rule can take a bite out of one.
+IDIOMS: Words = {
+    f"{asks} your word{rest}": "I want you to check"
+    for asks in ("that need", "that needs", "this needs") for rest in ("", ", not mine")
+}
+
 # Emphasis. AI emphasises everything, so all of it goes. "very important" stays as the one way to mark weight.
 EMPHASIS: Words = gone(
     "real", "genuine", "actual", "honest", "exact", "legit",
@@ -73,7 +79,7 @@ VERBS: Words = {
     "leverage": "use", "harness": "use", "surface": "show", "underscore": "show", "dive into": "look at",
     "foster": "help", "assist": "help", "compound": "grow", "bump into": "run into", "endeavor": "try",
     "attempt": "try", "purchase": "buy", "flag": "mention", "exercise": "run", "contend for": "compete for",
-    "eyeball": "check", "tear down": "clean up", "bake into": "build into",
+    "eyeball": "check", "tear down": "clean up", "bake into": "build into", "close out": "finish",
     "cost you": "lose you", "cost nothing": "lose nothing", "buy you": "give you", "buy nothing": "gain nothing",
     **look("circle back", "double down", "lean into", "sit with", "reach for", "arrive at", "come back to", "unlock", "empower", "elevate"),
 }

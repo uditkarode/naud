@@ -88,6 +88,9 @@ PLAINER = [
     ("Trivial to narrow to that.", "Simple to narrow to that."),
     ("Both fixes are in flight now.", "Both fixes are running now."),
     ("Start it if you want to eyeball the behavior.", "Start it if you want to check the behavior."),
+    ("Let me close out the remaining work.", "Let me finish the remaining work."),
+    ("That closes out the migration.", "That finishes the migration."),
+    ("Close out of the app and reopen it.", "Close out of the app and reopen it."),
     ("Canonical build scripts exist.", "Standard build scripts exist."),
     ("Nightly is just the refresh cadence.", "Nightly is just the refresh pace."),
 ]
@@ -97,6 +100,10 @@ HYPE = [
     ("It isn't small, it changes the story.", "It isn't small, it is a significant detail."),
     ("This needs your opinion, because it dictates the session.", "This needs your opinion, because it is a significant detail."),
     ("What needs a glance from you is the plan.", "What you need to check is the plan."),
+    ("Two things that need your word, not mine.", "Two things I want you to check."),
+    ("One thing that needs your word, not mine:", "One thing I want you to check:"),
+    ("Two things that need your word:", "Two things I want you to check:"),
+    ("This needs your word, not mine.", "I want you to check."),
 ]
 STRANDED = [
     ("the **real** problem", "the problem"),
