@@ -164,10 +164,36 @@ worth = matching(worth_patterns, unworth)
 def unbite(span: Span) -> Edit:
     if any(child.dep_ == "dobj" for child in span.root.children):
         return look(span)
-    return say(span, "cause a problem")
+    return say(span, "cause a problem")  # a noun-tagged `bites` bends `cause` to `causes` too, the -s being one form
 
 
-bites = matching(lambda: [[{"LEMMA": "bite", "POS": "VERB"}]], unbite)
+# The tagger reads `bites` as a plural noun whenever its subject is a noun or a pointer word, and hangs the
+# subject off it as a modifier, so `the cap bites` parses as one noun phrase. A noun-tagged `bites` is the verb
+# where it has a subject of its own: a noun read as a compound after a determiner, a pointer word no plural
+# follows, or a plain subject. Joined by `and` to a verb it is a verb too.
+POINTERS = frozenset({"this", "that", "what", "which"})
+
+
+def is_bite(t: Token) -> bool:
+    if t.pos_ == "VERB":
+        return True
+    if t.tag_ != "NNS":
+        return False
+    if t.dep_ == "conj":
+        return t.head.pos_ == "VERB"
+    det = next((c for c in t.children if c.dep_ == "det"), None)
+    if det is not None and (det.lower_ in POINTERS or any(c.dep_ == "compound" for c in t.children)):
+        return True
+    return subject_of(t) is not None
+
+
+bite_spans = spans(lambda: [[{"LEMMA": "bite"}]])
+
+
+def bites(doc: Doc) -> Iterator[Edit]:
+    for span in bite_spans(doc):
+        if is_bite(span[0]):
+            yield unbite(span)
 
 
 # `the failures are rare, and they're real` → the tail only insists, so it goes. Where `real` describes a noun
