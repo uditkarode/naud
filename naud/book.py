@@ -124,7 +124,7 @@ EMPTY: frozenset[str] = frozenset({
 # What naud can see but not fix blindly. It points, you rewrite.
 LOOK: Words = look(
     "worth", "physics", "the shape of", "shape of", "the engine", "hit hardest", "hits the hardest", "land hardest",
-    "the tell", "this matters", "it matters", "that matters", "because it matters", "can't stop thinking about",
+    "the tell", "can't stop thinking about",
     "double-click", "lean in", "come along", "dispatches from", "field notes", "best operators", "top practitioners",
     "first wave", "the only thing that", "hold that thought", "stays yours", "stay yours", "mature", "leave you with",
     "in my chest", "where I landed", "seen this movie before", "been here before", "turns on", "useful thing",

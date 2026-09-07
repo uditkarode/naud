@@ -1,5 +1,5 @@
 """Rules about words: the book's tables, `lives in` and `sits at`, `worth knowing`, what `bites`,
-a tail that only insists, a tail that means `only`, and a sentence that opens on a bare `This`."""
+what `matters`, a tail that only insists, a tail that means `only`, and a sentence that opens on a bare `This`."""
 from collections.abc import Iterator
 from functools import cache
 
@@ -9,7 +9,7 @@ from spacy.tokens import Doc, Span, Token
 from ..book import Entry, Words
 from ..edit import Edit, Finder, Kind, base, bend, cut, keep, look, replace, say
 from ..parse import model
-from .grammar import as_span, is_subject, subject_of
+from .grammar import as_span, is_subject, is_verb, subject_of
 from .match import Pattern, matching, pattern, spans
 
 
@@ -167,33 +167,35 @@ def unbite(span: Span) -> Edit:
     return say(span, "cause a problem")  # a noun-tagged `bites` bends `cause` to `causes` too, the -s being one form
 
 
-# The tagger reads `bites` as a plural noun whenever its subject is a noun or a pointer word, and hangs the
-# subject off it as a modifier, so `the cap bites` parses as one noun phrase. A noun-tagged `bites` is the verb
-# where it has a subject of its own: a noun read as a compound after a determiner, a pointer word no plural
-# follows, or a plain subject. Joined by `and` to a verb it is a verb too.
-POINTERS = frozenset({"this", "that", "what", "which"})
-
-
-def is_bite(t: Token) -> bool:
-    if t.pos_ == "VERB":
-        return True
-    if t.tag_ != "NNS":
-        return False
-    if t.dep_ == "conj":
-        return t.head.pos_ == "VERB"
-    det = next((c for c in t.children if c.dep_ == "det"), None)
-    if det is not None and (det.lower_ in POINTERS or any(c.dep_ == "compound" for c in t.children)):
-        return True
-    return subject_of(t) is not None
-
-
 bite_spans = spans(lambda: [[{"LEMMA": "bite"}]])
 
 
 def bites(doc: Doc) -> Iterator[Edit]:
     for span in bite_spans(doc):
-        if is_bite(span[0]):
+        if is_verb(span[0]):
             yield unbite(span)
+
+
+# `The split matters: it keeps the offsets simple.` → the frame only calls what follows important, so it goes
+# with its colon and the fact stands alone. Someone is meant in `You matter`, so that is left alone. Without a
+# colon nothing is announced, and past the front of a sentence the colon keeps a left half of its own
+# (`One reason this matters: X`), so both are only looked at.
+def unmatter(span: Span) -> Edit:
+    doc, sent = span.doc, span.sent
+    colon = next((t.i for t in doc[span.end : min(span.end + COLON_REACH, sent.end)] if t.text == ":"), None)
+    if colon is None or span.start != sent.start:
+        return look(span)
+    return cut(doc[sent.start : colon + 1])
+
+
+matter_spans = spans(lambda: [[{"LEMMA": "matter"}]])
+
+
+def matters(doc: Doc) -> Iterator[Edit]:
+    for span in matter_spans(doc):
+        word = span[0]
+        if is_verb(word) and not is_person(subject_of(word)):
+            yield unmatter(doc[word.left_edge.i : word.i + 1])
 
 
 # `the failures are rare, and they're real` → the tail only insists, so it goes. Where `real` describes a noun

@@ -88,6 +88,23 @@ BITE = [
     ("Sound bites don't help here.", "Sound bites don't help here."),
     ("Take a bite of the config first.", "Take a bite of the config first."),
 ]
+MATTERS = [
+    ("The split matters: it keeps the offsets simple.", "It keeps the offsets simple."),
+    ("Why this matters: the cache is cold.", "The cache is cold."),
+    ("The ordering matters: the earlier rule wins.", "The earlier rule wins."),
+    ("But the distinction matters: a cut is not a swap.", "A cut is not a swap."),
+    ("Two things matter here: the lockfile and the cache.", "The lockfile and the cache."),
+    ("These details matter: the cache is cold.", "The cache is cold."),
+    ("The build is green. The order matters: the earlier rule wins.", "The build is green. The earlier rule wins."),
+    ("The order matters. Use this: the lockfile.", "The order matters. Use this: the lockfile."),
+    ("You matter.", "You matter."),
+    ("He matters to her.", "He matters to her."),
+    ("Financial matters are handled elsewhere.", "Financial matters are handled elsewhere."),
+    ("These matters are closed.", "These matters are closed."),
+    ("He raised three matters.", "He raised three matters."),
+    ("It is a matter of time.", "It is a matter of time."),
+    ("No matter what you do, it fails.", "No matter what you do, it fails."),
+]
 PLAINER = [
     ("Two things I want to flag.", "Two things I want to mention."),
     ("The PR itself exercises the new routing.", "The PR itself runs the new routing."),
@@ -137,7 +154,7 @@ STRANDED = [
 ]
 
 
-@pytest.mark.parametrize(("text", "expected"), EMPHASIS + FILLER + JARGON + LIVES + WORTH + BITE + PLAINER + HYPE + NARROW + STRANDED)
+@pytest.mark.parametrize(("text", "expected"), EMPHASIS + FILLER + JARGON + LIVES + WORTH + BITE + MATTERS + PLAINER + HYPE + NARROW + STRANDED)
 def test_words(cleaned: Callable[[str], str], text: str, expected: str) -> None:
     assert cleaned(text) == expected
 
@@ -149,6 +166,8 @@ def test_words(cleaned: Callable[[str], str], text: str, expected: str) -> None:
     ("CI was still running, worth a glance before you trust the deploy.", "worth"),
     ("The stated mechanism is wrong.", "look"),
     ("This means the parser is slow.", "vague"),
+    ("The ordering matters.", "matter"),
+    ("It fails because it matters.", "matter"),
 ])
 def test_only_pointed_at(cleaned: Callable[[str], str], looks: Callable[[str], set[str]], text: str, rule: str) -> None:
     assert cleaned(text) == text
