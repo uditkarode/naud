@@ -68,10 +68,21 @@ FILLER: Words = gone(
     "one important thing", "one thing to note", "one thing to watch for", "worth being clear",
     "one important thing to flag", "one important thing to mention", "one thing to flag", "one thing to mention",
     "bottom line", "in a nutshell", "long story short", "simply put", "put simply",
-) | opener(
+    "it's also worth noting that", "it is also worth noting that", "it's also worth noting", "it is also worth noting",
+) | gone(*(
+    f"{it} {also}{weight} to {verb} that"
+    for it in ("it's", "it is") for also in ("", "also ") for weight in ("important", "crucial", "critical") for verb in ("note", "remember", "consider")
+)) | opener(
     "the point is", "the thing is", "the bottom line is", "the truth is", "the fact is",
     "the honest answer is", "the honest take is", "the honest version is", "the real fact is", "the short answer is",
     "the key thing is", "the important thing is", "the main thing is",
+)
+
+# Pleasantries that say nothing as a sentence of their own, or opening one before a comma.
+ALONE: tuple[str, ...] = (
+    "of course", "i hope this helps", "i hope that helps",
+    "let me know if you have any questions", "let me know if you have any other questions", "let me know if you need anything else",
+    "is there anything else i can help with", "is there anything else i can help you with",
 )
 
 # Verbs borrowed from other trades that are also nouns, so only when used as verbs: "the surface" is safe.
@@ -81,6 +92,7 @@ VERBS: Words = {
     "attempt": "try", "purchase": "buy", "flag": "mention", "exercise": "run", "contend for": "compete for",
     "eyeball": "check", "tear down": "clean up", "bake into": "build into", "close out": "finish",
     "cost you": "lose you", "cost nothing": "lose nothing", "buy you": "give you", "buy nothing": "gain nothing",
+    "showcase": "show", "bolster": "strengthen", "author": "write", "pass away": "die",
     **look("circle back", "double down", "lean into", "sit with", "reach for", "arrive at", "come back to", "unlock", "empower", "elevate"),
 }
 
@@ -106,6 +118,9 @@ PLAIN: Words = {
     "be identical": "be the same", "be identical to": "be the same as", "currently": "now", "typically": "usually", "converge": "settle", "hazard": "risk", "predate": "come before",
     "churn": "change", "churn out": "produce", "churn through": "work through",
     "introduce": "add", "preserve": "keep", "supersede": "replace",
+    "enhance": "improve", "garner": "gain", "relocate": "move", "intricacy": "detail", "meticulous": "careful", "meticulously": "carefully",
+    "a deep dive into": "a close look at", "do a deep dive into": "look closely at", "take a deep dive into": "look closely at",
+    "valuable insight": "insight", "valuable insights": "insights",
     "canonical": "standard", "trivial": "simple", "trivially": "easily", "caveat": "catch", "cadence": "pace",
     "empirically": "by testing", "in flight": "running", "in-flight": "running", "cheap": "quick", "expensive": "slow",
     "it changes the story": "it is a significant detail", "it dictates the session": "it is a significant detail",
@@ -113,7 +128,7 @@ PLAIN: Words = {
     **keep("customer churn", "churn rate"),
     **LINKERS,
     **{f"{k},": v for k, v in LINKERS.items()},
-    **gone("load-bearing", "transformative", "game-changing", "groundbreaking", "cutting-edge", "robust", "seamless", "intricate", "holistic", "pivotal"),
+    **gone("load-bearing", "transformative", "game-changing", "groundbreaking", "cutting-edge", "robust", "seamless", "seamlessly", "intricate", "holistic", "pivotal", "crucial"),
 }
 
 # The half after `not:` that says nothing on its own, so `A rather than B` drops B instead of marking it.

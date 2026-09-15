@@ -1,6 +1,7 @@
-"""Rules about words: the book's tables, `lives in` and `sits at`, `worth knowing`, what `bites`,
-what `matters`, a tail that only insists, a tail that means `only`, and a sentence that opens on a bare `This`."""
-from collections.abc import Iterator
+"""Rules about words: the book's tables, pleasantries said as a sentence of their own, `lives in` and `sits at`,
+`serves as` and `boasts`, `worth knowing`, what `bites`, what `matters`, a tail that only insists, a tail that means
+`only`, and a sentence that opens on a bare `This`."""
+from collections.abc import Iterable, Iterator
 from functools import cache
 
 from spacy.matcher import Matcher
@@ -55,6 +56,21 @@ def compound(span: Span) -> bool:
     return at > 1 and doc[at - 1].text == "-" and not doc[at - 2].whitespace_ and not doc[at - 1].whitespace_
 
 
+def alone(phrases: Iterable[str]) -> Finder:
+    """A finder for phrases that say nothing as a sentence of their own (`I hope this helps!`), or opening one before
+    a comma (`Of course, it works`). Anywhere else they carry the sentence, as in `let me know if you have any
+    questions about the plan`, so they are left alone."""
+    find = spans(lambda: [pattern(phrase) for phrase in phrases])
+
+    def rule(doc: Doc) -> Iterator[Edit]:
+        for span in find(doc):
+            rest = doc[span.end : span.sent.end]
+            if span.start == span.sent.start and (all(t.is_punct for t in rest) or rest[0].text == ","):
+                yield cut(span)
+
+    return rule
+
+
 # `the risk lives in the gap` → `the risk is in the gap`, and `BT sits at 0ms` → `BT is at 0ms`
 VERBS = ("live", "sit")
 PLACES = (
@@ -73,9 +89,17 @@ def is_place(t: Token | None) -> bool:
     return t is not None and t.ent_type_ in PLACE_ENTITIES
 
 
+def is_plural(who: Token | None) -> bool:
+    return who is not None and (
+        who.tag_ in ("NNS", "NNPS") or who.lower_ in ("we", "they", "you", "these", "those") or any(c.dep_ == "conj" for c in who.children)
+    )
+
+
 def form_of_be(verb: Token, who: Token | None) -> str:
-    plural = who is not None and (who.tag_ in ("NNS", "NNPS") or who.lower_ in ("we", "they", "you"))
-    return {"VBZ": "is", "VBP": "are", "VBD": "were" if plural else "was", "VBN": "been"}.get(verb.tag_, "be")
+    """The `be` that takes the verb's place and agrees with `who`: `I am`, `it was`, `they were`."""
+    if who is not None and who.lower_ == "i" and verb.tag_ in ("VBP", "VBD"):
+        return "am" if verb.tag_ == "VBP" else "was"
+    return {"VBZ": "is", "VBP": "are", "VBD": "were" if is_plural(who) else "was", "VBN": "been", "VBG": "being"}.get(verb.tag_, "be")
 
 
 def unplace(span: Span) -> Edit:
@@ -89,6 +113,58 @@ def unplace(span: Span) -> Edit:
 
 
 lives = matching(lambda: [pattern(f"{verb} {place}", "VERB") for verb in VERBS for place in PLACES], unplace)
+
+
+# `Gallery 825 serves as the exhibition space` → `Gallery 825 is the exhibition space`, and `stands as` goes the same
+# way. `as` has to be a preposition with a noun of its own, so `serves as many as 200 people`, `stands as of today`
+# and `stands as it did` are left alone, and so is the passive `is served as HTML`. The tagger can call a noun a verb,
+# as in `the stands as a whole were full`, and a verb in the present or past is never the subject, so that goes too.
+SERVE: Pattern = [{"LEMMA": {"IN": ["serve", "stand"]}}, {"LOWER": "as"}]
+NOUNS = frozenset({"NOUN", "PROPN", "PRON", "NUM"})
+FINITE = frozenset({"VBZ", "VBP", "VBD"})
+serve_spans = spans(lambda: [SERVE])
+
+
+def doer(verb: Token) -> Token | None:
+    """The subject, found through the verb `and` joins this one to, or the noun a `that` or `which` stands for."""
+    while subject_of(verb) is None and verb.dep_ == "conj":
+        verb = verb.head
+    who = subject_of(verb)
+    if who is not None and who.lower_ in ("that", "which", "who") and verb.dep_ == "relcl":
+        return verb.head
+    return who
+
+
+def unserve(span: Span) -> Edit:
+    """`was` or `were` turns on who served, so a `served` with no subject in sight is only looked at."""
+    verb = span[0]
+    who = doer(verb)
+    if verb.tag_ == "VBD" and who is None:
+        return look(span)
+    be = form_of_be(verb, who)
+    return replace(span, be.capitalize() if verb.is_title else be)
+
+
+def serves(doc: Doc) -> Iterator[Edit]:
+    for span in serve_spans(doc):
+        verb, prep = span[0], span[1]
+        noun = any(c.dep_ == "pobj" and c.pos_ in NOUNS for c in prep.children)
+        passive = any(c.dep_ == "auxpass" for c in verb.children)
+        a_noun = verb.tag_ in FINITE and is_subject(verb)
+        if is_verb(verb) and not a_noun and prep.dep_ == "prep" and prep.head.i == verb.i and noun and not passive:
+            yield unserve(span)
+
+
+# `The mall boasts a food court` → `The mall has a food court`. With nothing boasted of directly, as in `boasts about
+# his car` or `boasted that he won`, bragging is meant, so that is left alone.
+boast_spans = spans(lambda: [[{"LEMMA": "boast"}]])
+
+
+def boasts(doc: Doc) -> Iterator[Edit]:
+    for span in boast_spans(doc):
+        word = span[0]
+        if is_verb(word) and any(c.dep_ == "dobj" and c.pos_ != "SCONJ" for c in word.children):
+            yield say(span, "have")
 
 
 # `Worth knowing: X` → `X`, `one thing worth flagging: X` → `one thing: X`, and `both are worth fixing` → `both need fixing`.
