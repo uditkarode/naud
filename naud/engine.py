@@ -24,7 +24,9 @@ def found(line: str) -> list[Edit]:
 
 
 def apply(line: str, edits: list[Edit]) -> str:
-    """Right to left, so offsets stay true. A cut hands its capital to the next word and rechecks the article before it."""
+    """Right to left, so offsets stay true. A cut hands its capital to the next word and rechecks the article before it.
+    Spaces the edits leave at the end of the line go, and the line keeps its own ending, as a `\\r`."""
+    ending = line[len(line.rstrip()) :]
     for e in reversed(edits):
         if e.kind is Kind.LOOK:
             continue
@@ -33,7 +35,7 @@ def apply(line: str, edits: list[Edit]) -> str:
             line = recase(line, e.start + len(e.text))
         if e.kind is Kind.CUT:
             line = rearticle(line, e.start)
-    return line
+    return line.rstrip() + ending
 
 
 def lint(text: str) -> list[Edit]:

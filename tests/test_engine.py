@@ -13,6 +13,7 @@ from naud.markdown import ends_fenced
     ("```real```\nIt is really good.", "```real```\nIt is good."),
     ("It’s worth noting that the `real` flag is real.", "The `real` flag is real."),
     ("It is genuinely fast.\r\n", "It is fast.\r\n"),
+    ("It works. Hope this helps!", "It works."),
     ("", ""),
     ("- honestly, yes", "- yes"),
     ("An actual problem.", "A problem."),
