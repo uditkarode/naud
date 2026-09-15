@@ -2,6 +2,7 @@ import asyncio
 import json
 from functools import partial
 from pathlib import Path
+from tempfile import TemporaryDirectory
 from typing import Any
 
 from naud.serve import Message, answer, talk
@@ -26,13 +27,15 @@ def test_a_finished_message_is_forgotten() -> None:
     assert messages == {}
 
 
-def test_a_request_over_the_socket_gets_the_hook_reply(tmp_path: Path) -> None:
-    async def go() -> Any:
-        path = str(tmp_path / "naud.sock")
+def test_a_request_over_the_socket_gets_the_hook_reply() -> None:
+    async def go(path: str) -> Any:
         async with await asyncio.start_unix_server(partial(talk, {}), path):
             reader, writer = await asyncio.open_unix_connection(path)
             writer.write(json.dumps(batch(0, "It is very good.\n", final=True)).encode())
             writer.write_eof()
             return json.loads(await reader.read())
 
-    assert asyncio.run(go()) == {"hookSpecificOutput": {"hookEventName": "MessageDisplay", "displayContent": "It is good.\n"}}
+    # pytest's tmp_path runs past the 104 bytes macOS allows in a socket path, so the socket goes in a shorter folder.
+    with TemporaryDirectory() as folder:
+        got = asyncio.run(go(str(Path(folder) / "naud.sock")))
+    assert got == {"hookSpecificOutput": {"hookEventName": "MessageDisplay", "displayContent": "It is good.\n"}}
