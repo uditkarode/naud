@@ -29,6 +29,10 @@ TAIL = [
 STACCATO = [
     ("No fluff. No hype. Just results.", "Results."),
     ("No fluff, no hype, just results.", "Results."),
+    ("No worries, just ping me.", "Ping me."),
+    ("There's no cache. No retry. Just a crash.", "There's no cache. A crash."),
+    ("There's no rush, just do it.", "There's no rush, just do it."),
+    ("It has no tests, no docs, just code.", "It has no tests, no docs, just code."),
 ]
 NOT_BUT = [
     ("This isn't a bug. It's a feature.", "It's a feature."),

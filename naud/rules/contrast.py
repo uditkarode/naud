@@ -90,7 +90,8 @@ def untail(span: Span) -> Edit:
 tail = matching(lambda: [pattern(connector) for connector in CONNECTORS], untail)
 
 
-# `No X. No Y. Just Z.` → `Z.`
+# `No X. No Y. Just Z.` → `Z.` The cut starts at the first `No` that opens a sentence. A `no` inside a sentence
+# belongs to that sentence, as in `There's no rush, just do it`, so it stays.
 NO_X: Pattern = [{"LOWER": "no"}, {"POS": {"NOT_IN": ["VERB", "AUX"]}, "IS_PUNCT": False, "OP": "{1,5}"}, {"ORTH": {"IN": [",", "."]}}]
 no_x = spans(lambda: [NO_X])
 
@@ -108,7 +109,9 @@ def runs(pieces: dict[int, int]) -> Iterator[tuple[int, int]]:
 def staccato(doc: Doc) -> Iterator[Edit]:
     pieces = {piece.start: piece.end for piece in no_x(doc)}
     for start, end in runs(pieces):
-        if end < len(doc) and doc[end].lower_ == "just":
+        while start != end and start != doc[start].sent.start:
+            start = pieces[start]
+        if start != end and end < len(doc) and doc[end].lower_ == "just":
             yield cut(doc[start : end + 1])
 
 
