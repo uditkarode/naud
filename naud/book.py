@@ -54,6 +54,16 @@ EMPHASIS: Words = gone(
     "very important", "extremely important", "honest with",
 )
 
+# Absolutes. A model writes `all 11 issues are fixed`, `they all pass` and `the code never ran`, where `the 11 issues`,
+# `they pass` and `did not run` say the same, so the rules in `absolutes` take the word out. These are the places
+# where the word is part of a phrase with a meaning of its own, so they stay.
+ABSOLUTE: Words = keep(
+    "all the time", "all the way", "all the same", "all the more", "all the better", "all the rage", "all the while",
+    "all kinds of", "all sorts of", "all types of", "all manner of", "all ears", "all eyes", "all hands", "all caps",
+    "all rights reserved", "all things considered", "at all costs", "by all means", "by all accounts", "against all odds",
+    "for all intents", "on all fours", "as always", "never mind",
+)
+
 # Throat-clearing. Says nothing, so nothing replaces it.
 FILLER: Words = gone(
     "at the end of the day", "at its core", "when all is said and done",

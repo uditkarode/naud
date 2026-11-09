@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 from .. import book
 from ..edit import Finder
-from . import contrast, joints, length, words
+from . import absolutes, contrast, joints, length, words
 
 
 @dataclass(frozen=True)
@@ -27,6 +27,11 @@ RULES: list[Rule] = [
     Rule("insist", words.insists),
     Rule("narrow", words.narrows),
     Rule("emphasis", words.table(book.EMPHASIS)),
+    Rule("absolute", words.table(book.ABSOLUTE)),
+    Rule("all", absolutes.alls),
+    Rule("at-all", absolutes.at_all),
+    Rule("always", absolutes.always),
+    Rule("never", absolutes.never),
     Rule("jargon", words.table(book.VERBS, pos="VERB")),
     Rule("plain", words.table(book.PLAIN)),
     Rule("lives", words.lives),

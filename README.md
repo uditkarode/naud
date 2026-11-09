@@ -3,7 +3,8 @@
 Takes the AI-speak out of English.
 
 It cuts emphasis and filler, swaps jargon for plain words, turns `A rather than B` into
-`A (not: B)`, and drops `not X, but Y` contrasts. Em dashes, colons and semicolons that glue
+`A (not: B)`, and drops `not X, but Y` contrasts. `All 11 tests pass` becomes `The 11 tests pass`,
+`always` goes, and `never ran` becomes `did not run`. Em dashes, colons and semicolons that glue
 clauses become full stops. Long sentences are split, and long paragraphs are broken up. What it
 can't fix blindly it points at. Code fences and inline code are never touched.
 

@@ -104,11 +104,20 @@ def with_hyphen(span: Span) -> Span:
 
 
 def with_comma(span: Span) -> Span:
-    """The comma it would leave dangling, as in `Honestly, it works`."""
+    """The comma it would leave dangling: after an opener, as in `Honestly, it works`, or before the next item of a
+    list, as in `a robust, seamless integration`. A comma that ends a clause stays, as in `it never scrolls at all,
+    so`."""
     doc, end = span.doc, span.end
     if end < len(doc) - 1 and doc[end].text in (",", ":") and doc[span.start].text != ",":
-        end += 1
+        opens = span.start == span.sent.start or doc[span.start - 1].is_punct
+        if opens or listed(span.root, doc[end + 1]):
+            end += 1
     return doc[span.start : end]
+
+
+def listed(item: Token, after: Token) -> bool:
+    """`after` is the next item of a list that `item` is in."""
+    return (after.dep_ == "conj" and after.head.i == item.i) or (after.dep_ == item.dep_ and after.head.i == item.head.i)
 
 
 def with_full_stop(span: Span) -> Span:

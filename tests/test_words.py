@@ -150,7 +150,7 @@ MATTERS = [
 PLAINER = [
     ("Two things I want to flag.", "Two things I want to mention."),
     ("The PR itself exercises the new routing.", "The PR itself runs the new routing."),
-    ("All five commands contend for the same data disk.", "All five commands compete for the same data disk."),
+    ("All five commands contend for the same data disk.", "The five commands compete for the same data disk."),
     ("The guest agent is baked into the image.", "The guest agent is built into the image."),
     ("Swarm services torn down, the volume removed.", "Swarm services cleaned up, the volume removed."),
     ("Raising it to 10s costs nothing.", "Raising it to 10s loses nothing."),
