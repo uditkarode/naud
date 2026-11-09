@@ -28,6 +28,7 @@ RULES: list[Rule] = [
     Rule("narrow", words.narrows),
     Rule("emphasis", words.table(book.EMPHASIS)),
     Rule("absolute", words.table(book.ABSOLUTE)),
+    Rule("each", absolutes.each),
     Rule("all", absolutes.alls),
     Rule("at-all", absolutes.at_all),
     Rule("always", absolutes.always),

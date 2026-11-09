@@ -1,7 +1,8 @@
-"""Rules about absolutes: `all` where the sentence already says it, `at all` after a `no`, `always`, and `never`
-said as `not`."""
+"""Rules about absolutes: `all` where the sentence already says it, `each one` said as `they`, `at all` after a
+`no`, `always`, and `never` said as `not`."""
 from collections.abc import Iterator
 
+from lemminflect import getInflection
 from spacy.tokens import Doc, Token
 
 from ..edit import Edit, base, cut, replace, say
@@ -149,6 +150,124 @@ def alls(doc: Doc) -> Iterator[Edit]:
     for word in doc:
         if word.lower_ == "all" and not bound(word) and not hedged(word):
             edit = unall(word)
+            if edit is not None:
+                yield edit
+
+
+# `Each one passed` → `They passed`, `I checked each one` → `I checked them`, `every one of them passes` → `they
+# pass`, and `each of those tests fails` → `those tests fail`. Where the rest of the clause is said once for each
+# one, as in `each one has a color`, `holds one address` or `review each one when it comes back`, `they` would make
+# it one for all, so it stays.
+SINGLE = frozenset({"a", "an", "another", "each", "every"})
+BACK = frozenset({"it", "its", "itself"})
+PLURAL = {"them": "they", "us": "we", "you": "you"}
+
+
+def head_of_each(word: Token) -> Token | None:
+    """`one` in `each one` and `every one of them`, or `each` in `each of those tests`."""
+    if word.dep_ == "det" and word.head.i == word.i + 1 and word.head.lower_ == "one":
+        return word.head
+    if word.lower_ == "each" and any(c.dep_ == "prep" and c.lower_ == "of" for c in word.children):
+        return word
+    return None
+
+
+def each_time(start: int, end: int, verb: Token) -> bool:
+    """The rest of the clause is said once for each one: `has a color`, `holds one address`, `had 93 passed`, `has
+    its own row`."""
+    rest = [t for t in verb.subtree if not start <= t.i < end]
+    single = any((t.lower_ in SINGLE and t.dep_ == "det") or t.pos_ == "NUM" for t in rest)
+    return single or any(t.lower_ in BACK for t in verb.doc[end : verb.sent.end])
+
+
+def finite(verb: Token) -> Token | None:
+    """The word of the verb that agrees with its subject: its first helper, or the verb itself."""
+    helpers = [c for c in verb.children if c.dep_ in ("aux", "auxpass") and c.i < verb.i]
+    word = min(helpers, key=lambda t: t.i) if helpers else verb
+    return word if word.tag_ in ("VBZ", "VBP", "VBD", "MD") or (word.tag_ == "NNS" and (is_verb(word) or bare(word))) else None
+
+
+def plural(word: Token) -> str | None:
+    """The form the word takes after `they`: `passes` → `pass`, `is` → `are`, `was` → `were`. The tagger can read
+    the verb as a plural noun, as in `each one slowly brightens`. A contracted `'s` is left alone."""
+    if word.text.startswith("'"):
+        return None
+    if word.lower_ == "was":
+        return "were"
+    if word.tag_ == "VBZ":
+        return "are" if word.lemma_ == "be" else (getInflection(word.lemma_, "VBP") or [word.lemma_])[0]
+    if word.tag_ == "NNS":
+        return base(word)
+    return word.text
+
+
+def sharing(verb: Token) -> list[Token]:
+    """The verb, and the verbs `and` or `or` join to it that share its subject, as in `each one boots and uses`.
+    The tagger can read a verb with its own subject as a noun phrase, as in `and the third run passes`, and that
+    one is not joined."""
+    joined = [c for c in verb.children if c.dep_ == "conj" and subject_of(c) is None and (c.pos_ in VERBAL or bare(c))]
+    return [verb, *(v for c in joined for v in sharing(c))]
+
+
+def bare(word: Token) -> bool:
+    """A verb the tagger read as a plural noun, with no determiner or noun in front of it."""
+    return word.tag_ == "NNS" and not any(c.dep_ in ("det", "poss", "compound", "amod") for c in word.children)
+
+
+def uneach(word: Token) -> Edit | None:
+    """A subject is said `they` and its verbs agree, in one edit from the subject to its last verb, so no other rule
+    can take half of it. After a verb, as in `having each one checked`, the subject is that verb's object, so it
+    stays."""
+    doc = word.doc
+    one = head_of_each(word)
+    if one is None or one.dep_ not in ("nsubj", "nsubjpass", "dobj"):
+        return None
+    rest = [c for c in one.children if c.i != word.i]
+    if rest and not (len(rest) == 1 and rest[0].lower_ == "of"):
+        return None
+    whom = next((c for c in rest[0].children if c.dep_ == "pobj"), None) if rest else None
+    if rest and whom is None:
+        return None
+    start, end, verb = word.i, (whom.right_edge.i if whom else one.i) + 1, one.head
+    subject = one.dep_ != "dobj"
+    if each_time(start, end, verb):
+        return None
+    if whom is None:
+        said = "they" if subject else "them"
+    elif whom.lower_ in PLURAL:
+        said = PLURAL[whom.lower_] if subject else whom.lower_
+    elif whom.lower_ in ("these", "those") or (
+        whom.tag_ in ("NNS", "NNPS") and any(c.dep_ in ("det", "poss") and c.lower_ not in SINGLE for c in whom.children)
+    ):
+        said = doc[whom.left_edge.i : end].text
+    else:
+        return None
+    if word.is_title:
+        said = said[0].upper() + said[1:]
+    swaps: dict[int, str] = {}
+    if subject:
+        if verb.i < one.i or (start and doc[start - 1].pos_ in VERBAL):
+            return None
+        for v in sharing(verb):
+            agrees = finite(v)
+            form = plural(agrees) if agrees is not None else None
+            if agrees is None or form is None:
+                return None
+            if form != agrees.text:
+                swaps[agrees.i] = form
+    last = max([end - 1, *swaps])
+    if any(t.is_space for t in doc[start : last + 1]):
+        return None
+    for t in doc[end : last + 1]:
+        said += doc[t.i - 1].whitespace_ + swaps.get(t.i, t.text)
+    return replace(doc[start : last + 1], said)
+
+
+def each(doc: Doc) -> Iterator[Edit]:
+    for word in doc:
+        before, _ = neighbours(word)
+        if word.lower_ in ("each", "every") and not bound(word) and (before is None or before.lower_ not in HEDGES):
+            edit = uneach(word)
             if edit is not None:
                 yield edit
 

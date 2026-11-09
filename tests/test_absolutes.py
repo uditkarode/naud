@@ -49,6 +49,32 @@ ALL = [
     ("Click select-all before the results load.", "Click select-all before the results load."),
     ('Customers receive the store\'s "all customers" broadcasts.', 'Customers receive the store\'s "all customers" broadcasts.'),
 ]
+EACH = [
+    ("Each one passed in the other run, and the third run passed and deployed.", "They passed in the other run, and the third run passed and deployed."),
+    ("Each one now has:", "They now have:"),
+    ("Each one doesn't pass.", "They don't pass."),
+    ("Each one of them is fixed.", "They are fixed."),
+    ("I'll check that each one goes live.", "I'll check that they go live."),
+    ("Teal chips show what each one saves or tags.", "Teal chips show what they save or tag."),
+    ("Each one slowly brightens and dims.", "They slowly brighten and dim."),
+    ("Each one passes, and the third run passes and deploys.", "They pass, and the third run passes and deploys."),
+    ("I checked each one against the code.", "I checked them against the code."),
+    ("I will merge when every one of them passes.", "I will merge when they pass."),
+    ("Each of those tests fails on the old code.", "Those tests fail on the old code."),
+    ("I'll verify each of their findings before reporting.", "I'll verify their findings before reporting."),
+    # where the rest is said once for each one, or `one` has words of its own
+    ("LINE has two settings, and each one holds one web address.", "LINE has two settings, and each one holds one web address."),
+    ("Each one has a color.", "Each one has a color."),
+    ("I ran three runs, and each one had 93 passed.", "I ran three runs, and each one had 93 passed."),
+    ("I'll review each one when it comes back.", "I'll review each one when it comes back."),
+    ("Before resolving each one, I'm checking that its fix is pushed.", "Before resolving each one, I'm checking that its fix is pushed."),
+    ("Each of those boards has its own row.", "Each of those boards has its own row."),
+    ("Fix every one that is real.", "Fix every one that is real."),
+    ("Every one since then got 401.", "Every one since then got 401."),
+    ("Tell me after each one so I can measure.", "Tell me after each one so I can measure."),
+    ("Before fixing anything I am having each one checked.", "Before fixing anything I am having each one checked."),
+    ("Not every one of them passes.", "Not every one of them passes."),
+]
 AT_ALL = [
     ("It fails with no scroll at all.", "It fails with no scroll."),
     ("The outer page area no longer scrolls at all, so the menu stays put.", "The outer page area no longer scrolls, so the menu stays put."),
@@ -92,6 +118,6 @@ NEVER = [
 ]
 
 
-@pytest.mark.parametrize(("text", "expected"), ALL + AT_ALL + ALWAYS + NEVER)
+@pytest.mark.parametrize(("text", "expected"), ALL + EACH + AT_ALL + ALWAYS + NEVER)
 def test_absolutes(cleaned: Callable[[str], str], text: str, expected: str) -> None:
     assert cleaned(text) == expected
